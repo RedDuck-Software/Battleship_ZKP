@@ -1,0 +1,36 @@
+import "hashes/keccak/256bit" as keccak;
+import "utils/pack/u32/unpack128" as unpack128;
+import "utils/pack/u32/pack128" as pack128;
+import "utils/casts/field_to_u8" as field_to_u8;
+import "utils/casts/bool_array_to_u32_array" as bool_to_u32;
+import "utils/casts/u8_to_bits" as u8_to_bits;
+import "utils/casts/u32_from_bits" as u32_from_bits;
+
+def main(public field carrierX, public field carrierY, public field carrierO) -> field[2] {
+    u8 x = field_to_u8(carrierX);
+    u8 y = field_to_u8(carrierY);
+    u8 o = field_to_u8(carrierO);
+
+    u8[32] hash = keccak([x, y, o]);
+    bool[8][32] mut bits = [[false; 32]; 8]; // 8*32 = 256 bits
+
+    for u32 i in 0..32 { // 32
+        u32 j = i/4; // fill 8 times;
+
+        bool[8] value = u8_to_bits(hash[i]);
+
+        for u32 k in 0..8 { // 
+            bits[i/4][(i%4)*8+k] = value[k]; // 4 is max (4*8 = 128)
+        }
+    }
+
+    u32[8] mut hashCasted = [0; 8];
+
+    for u32 i in 0..8 {
+        hashCasted[i] = u32_from_bits(bits[i]);
+    }
+
+    //return bits;
+
+    return [pack128(hashCasted[0..4]), pack128(hashCasted[4..8])];
+}

@@ -1,0 +1,50 @@
+{
+  "inputs": [
+    {
+      "name": "carrierX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "carrierY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "carrierO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "stateHash1",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "stateHash2",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "attackIndexX",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "attackIndexY",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "result",
+      "public": true,
+      "type": "bool"
+    }
+  ],
+  "output": {
+    "type": "tuple",
+    "components": {
+      "elements": []
+    }
+  }
+}
