@@ -12,6 +12,7 @@ import { expect } from "chai";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers.js";
 import { initialize } from "zokrates-js";
 import { BigNumberish } from "ethers";
+import { base64ToArrayBuffer } from "./base64ToArrayBuffer.js";
 
 describe("Battleship", function() { 
   let battleField: BattleField
@@ -60,30 +61,21 @@ describe("Battleship", function() {
     
     let artifacts = provider.compile(fieldCode);
 
-    // gathering args and computing witness
-    const splitHash = await battleField.splitHash(coordinatesHash);
-    const args = [...coordinates.map(i => i.toString()), ...splitHash.map(i => i.toString()), attackFalseX.toString(), attackFalseY.toString(), false];
-    const { witness, output } = provider.computeWitness(artifacts, args);
-    const { proof, inputs } = provider.generateProof(artifacts.program, witness, base64ToArrayBuffer(provingKey));
+    async function generateAndSubmitProof(attackX:number, attackY:number, resultToProve: boolean) {
+      // gathering args and computing witness
+      const splitHash = await battleField.splitHash(coordinatesHash);
+      const args = [...coordinates.map(i => i.toString()), ...splitHash.map(i => i.toString()), attackX.toString(), attackY.toString(), resultToProve];
+      const { witness, output } = provider.computeWitness(artifacts, args);
+      const { proof } = provider.generateProof(artifacts.program, witness, base64ToArrayBuffer(provingKey));
 
-    console.log(proof);
+      console.log(proof);
 
-    
+      await battleField.VerifyAttack(proof as Verifier.ProofStruct, resultToProve ? 2 : 1, resultToProve);
+      const fieldState1 = await battleField.battlefieldStates(coordinatesHash, attackX, attackY);
+      expect(fieldState1).to.equal(resultToProve ? '1' : '2'); // 2 = MISS
+    }
 
-    const transaction = battleField.VerifyAttack(proof, 1, false);
-
+    await generateAndSubmitProof(attackFalseX, attackFalseY, false);
+    await generateAndSubmitProof(attackTrueX, attackTrueY, true);
   })
 });
-
-export const base64ToArrayBuffer = (strings: string): Uint8Array => {
-
-  return Uint8Array.from(
-    Buffer.from(strings, "hex")
-  );
-
-};
-
-export const arrayBufferToBase64 = (arrayBuffer: ArrayBuffer): string => {
-  const b = Buffer.from(arrayBuffer);
-  return b.toString("base64");
-};
