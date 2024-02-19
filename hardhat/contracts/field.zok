@@ -25,12 +25,13 @@ struct fieldState {
     ship boat;
 }
 
-def hash(field carrierX, field carrierY, field carrierO) -> field[2] {
-    u8 x = field_to_u8(carrierX);
-    u8 y = field_to_u8(carrierY);
-    u8 o = field_to_u8(carrierO);
+def hash(field carrierX, field carrierY, field shipX, field shipY) -> field[2] {
+    u8 x1 = field_to_u8(carrierX);
+    u8 y1 = field_to_u8(carrierY);
+    u8 x2 = field_to_u8(shipX);
+    u8 y2 = field_to_u8(shipY);
 
-    u8[32] hash = keccak([x, y, o]);
+    u8[32] hash = keccak([x1, y1, x2, y2]);
     bool[8][32] mut bits = [[false; 32]; 8]; // 8*32 = 256 bits
 
     for u32 i in 0..32 { // 32
@@ -51,9 +52,11 @@ def hash(field carrierX, field carrierY, field carrierO) -> field[2] {
     return [pack128(hashCasted[0..4]), pack128(hashCasted[4..8])];
 }
 
-def main(private field carrierX, private field carrierY, private field carrierO, public field stateHash1, public field stateHash2, public field attackIndexX, public field attackIndexY, public bool result) {    
-    assert(hash(carrierX, carrierY, carrierO) == [stateHash1, stateHash2]);
-    assert((carrierX == attackIndexX && carrierY == attackIndexY) == result);
+def main(private field crX, private field crY, private field spX, 
+        private field spY,  public field fieldHash1, public field fieldHash2, 
+        public field attackX, public field attackY, public bool hit) {
+    assert(hash(crX, crY, spX, spY) == [fieldHash1, fieldHash2]);
+    assert((crX == attackX && crY == attackY || spX == attackX && spY == attackY) == hit);
 
     return;
 }

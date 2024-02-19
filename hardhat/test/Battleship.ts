@@ -44,38 +44,43 @@ describe("Battleship", function() {
   it("Should allow to attack and verify the attack", async function() {
     const attackFalseX = 2;
     const attackFalseY = 3;
-    const attackTrueX = 5;
-    const attackTrueY = 10;
-    const coordinates = [attackTrueX, attackTrueY, 1]; // x y & orientation
+    const crX = 5;
+    const crY = 10;
+    const spX = 9;
+    const spY = 7;
+    const coordinates = [crX, crY, spX, spY]; // x y & orientation
     const coordinatesHash = hardhat.ethers.solidityPackedKeccak256(new Array(coordinates.length).fill("uint8"), coordinates);
     const gameID = 1;
 
     battleField.connect(defender).CreateBattleField(coordinatesHash, gameID);
+
+    // attacks
     battleField.connect(attacker).AttackField(defender, gameID, attackFalseX, attackFalseY, 1);
-    battleField.connect(attacker).AttackField(defender, gameID, attackTrueX, attackTrueY, 2);
+    battleField.connect(attacker).AttackField(defender, gameID, crX, crY, 2);
 
-    let provider = await initialize();
-
+    // init
+    let zokratesProvider = await initialize();
     let fieldCode = await fs.promises.readFile("./contracts/field.zok").then(i => i.toString());
     let provingKey = await fs.promises.readFile("./contracts/proving.key").then(i => i.toString("hex"));
-    
-    let artifacts = provider.compile(fieldCode);
+    let artifacts = zokratesProvider.compile(fieldCode);
 
-    async function generateAndSubmitProof(attackX:number, attackY:number, resultToProve: boolean) {
+    async function generateAndSubmitProof(attackX:number, attackY:number, index:number, resultToProve: boolean) {
       // gathering args and computing witness
       const splitHash = await battleField.splitHash(coordinatesHash);
+
+      console.log("splitHash:", splitHash);
+
       const args = [...coordinates.map(i => i.toString()), ...splitHash.map(i => i.toString()), attackX.toString(), attackY.toString(), resultToProve];
-      const { witness, output } = provider.computeWitness(artifacts, args);
-      const { proof } = provider.generateProof(artifacts.program, witness, base64ToArrayBuffer(provingKey));
+      const { witness, output } = zokratesProvider.computeWitness(artifacts, args);
+      const { proof } = zokratesProvider.generateProof(artifacts.program, witness, base64ToArrayBuffer(provingKey));
 
-      console.log(proof);
-
-      await battleField.VerifyAttack(proof as Verifier.ProofStruct, resultToProve ? 2 : 1, resultToProve);
+      await battleField.VerifyAttack(proof as Verifier.ProofStruct, index, resultToProve);
       const fieldState1 = await battleField.battlefieldStates(coordinatesHash, attackX, attackY);
       expect(fieldState1).to.equal(resultToProve ? '1' : '2'); // 2 = MISS
     }
 
-    await generateAndSubmitProof(attackFalseX, attackFalseY, false);
-    await generateAndSubmitProof(attackTrueX, attackTrueY, true);
+    // attack results
+    await generateAndSubmitProof(attackFalseX, attackFalseY, 1, false);
+    await generateAndSubmitProof(crX, crY, 2, true);
   })
 });

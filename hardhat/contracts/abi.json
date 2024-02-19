@@ -1,42 +1,47 @@
 {
   "inputs": [
     {
-      "name": "carrierX",
+      "name": "crX",
       "public": false,
       "type": "field"
     },
     {
-      "name": "carrierY",
+      "name": "crY",
       "public": false,
       "type": "field"
     },
     {
-      "name": "carrierO",
+      "name": "spX",
       "public": false,
       "type": "field"
     },
     {
-      "name": "stateHash1",
+      "name": "spY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "fieldHash1",
       "public": true,
       "type": "field"
     },
     {
-      "name": "stateHash2",
+      "name": "fieldHash2",
       "public": true,
       "type": "field"
     },
     {
-      "name": "attackIndexX",
+      "name": "attackX",
       "public": true,
       "type": "field"
     },
     {
-      "name": "attackIndexY",
+      "name": "attackY",
       "public": true,
       "type": "field"
     },
     {
-      "name": "result",
+      "name": "hit",
       "public": true,
       "type": "bool"
     }
